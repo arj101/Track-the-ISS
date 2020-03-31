@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""
+    ></script>
+
+    <title>Tracking the ISS!</title>
+  </head>
+
+  <body>
+    <h1>Where is the ISS?</h1>
+    <p>
+      Latitude: <span id="lat"> <i> loading ...</i></span>
+    </p>
+    <p>
+      Longitude: <span id="lon"> <i> loading ...</i></span>
+    </p>
+    <div id="issMap"></div>
+
+    <style>
+      #issMap {
+        height: 65vh;
+        width: 98vw;
+      }
+    </style>
+
+    <script>
+      // ^^^  tag to put the JavaScript code inside HTML file
+
+      // JavaScript code begins here!!!
+
+      const mymap = L.map("issMap").setView([0, 0], 1.5); // create a map and set its view at latitude and longitude 0 and set the zoom level
+      const attribution = // atribution to OpenStreetMap
+        'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors</a>';
+      const tileURL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"; // url of map tile
+      const tiles = L.tileLayer(tileURL, { attribution }); //setting the tiles up
+      tiles.addTo(mymap); // adding 'tiles' as the tile for 'mymap' map
+
+      let iss_marker; // ISS marker (not initialized)
+
+      const api_iss_url = "https://api.wheretheiss.at/v1/satellites/25544"; //url to 'where the iss.at?' API
+
+      // function to get ISS's position
+      async function getISS() {
+        const response = await fetch(api_iss_url); // fetch the data about the ISS and wait until it is recieved
+        const data = await response.json(); // convert the recieved data to JSON format
+        const latitude = data.latitude; //declare and assign the latitude data of the ISS to 'latitude'
+        const longitude = data.longitude; //declare and assign the longitude data of the ISS to 'longitude'
+        document.getElementById("lat").textContent = latitude.toFixed(2) + "°"; // replace the text content in element with id 'lat' with the 'latitude' and only show digits from two decimal places. Also add degrees(°) sumbole after the number
+        document.getElementById("lon").textContent = longitude.toFixed(2) + "°"; //replace the text content in element with id 'lon' with the 'longitude'and only show digits from two decimal places.  Also add degrees(°) sumbole after the number
+        return { latitude, longitude }; // return a object with latitude and longitude
+      }
+
+      // function to configure the map and reconfigure
+      async function re_configMap() {
+        const iss_pos = await getISS(); // recieve the latitude and longitude from the getISS function and wait until it is recieved
+        const lat = iss_pos.latitude; // declare and assign 'lat' with the latitude of the ISS
+        const lon = iss_pos.longitude; // declare and assign 'lon' with the longitude of the ISS
+        mymap.setView([lat, lon]); // set the view of the map 'mymap' to the latitude and longitude od the ISS
+        iss_marker.setLatLng([lat, lon]); // set the latitude and longitude of the marker named 'iss_marker' to that of ISS
+      }
+
+      getISS()
+        .then(iss_pos => {
+          // if everything went as expected and there was no issues
+          const lat = iss_pos.latitude; // then set  'lat' as latitude of the ISS
+          const lon = iss_pos.longitude; // and set 'lon' as the longitude of the ISS
+          const iss_icon = L.icon({
+            // specifying the icon for marking the ISS position
+            iconUrl: "iss.svg", // image to be displayed as icon
+            iconSize: [140, 180], // resizing the image
+            iconAnchor: [70, 90] // specifying the center of the icon image
+          });
+          iss_marker = L.marker([lat, lon], { icon: iss_icon }).addTo(mymap); // initailizing marker named 'iss_marker'
+          mymap.setView([lat, lon]); // changing map view to position of ISS
+          setInterval(re_configMap, 1200); // setting re_configMap function to run every 1.2 second
+        })
+        .catch(error => {
+          // if something went wrong while requesting ISS position
+          console.error(error); // then display the error in the console as an error message
+          alert("Oops. Cannot get position of ISS! :("); //and alert client that there was an issue(message which will be displayed is in double quotes)
+        });
+    </script>
+    <!-- ^^^  closing the script tag with '/' infront of 'script' -->
+  </body>
+</html>
