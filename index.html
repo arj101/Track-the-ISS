@@ -70,6 +70,7 @@
         const lon = iss_pos.longitude; // declare and assign 'lon' with the longitude of the ISS
         mymap.setView([lat, lon]); // set the view of the map 'mymap' to the latitude and longitude od the ISS
         iss_marker.setLatLng([lat, lon]); // set the latitude and longitude of the marker named 'iss_marker' to that of ISS
+        setTimeout(re_configMap, 1200); // setting the function re_configMap to run recursively after every 1.2 seconds
       }
 
       getISS()
@@ -80,12 +81,12 @@
           const iss_icon = L.icon({
             // specifying the icon for marking the ISS position
             iconUrl: "iss.svg", // image to be displayed as icon
-            iconSize: [140, 180], // resizing the image
-            iconAnchor: [70, 90] // specifying the center of the icon image
+            iconSize: [120, 160], // resizing the image
+            iconAnchor: [60, 80] // specifying the center of the icon image
           });
           iss_marker = L.marker([lat, lon], { icon: iss_icon }).addTo(mymap); // initailizing marker named 'iss_marker'
           mymap.setView([lat, lon]); // changing map view to position of ISS
-          setInterval(re_configMap, 1200); // setting re_configMap function to run every 1.2 second
+          setTimeout(re_configMap, 1100); // setting re_configMap function to run after 1.1 second
         })
         .catch(error => {
           // if something went wrong while requesting ISS position
